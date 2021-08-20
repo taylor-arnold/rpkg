@@ -27,17 +27,27 @@
 #'                       to model files (which are unzipped).
 #' @param force          logical. Should files be downloaded if they appear
 #'                       to already exist?
+#' @param baseURL        the url that contains the required CoreNLP packages
+#' @param coreFile       the name of the zip and jar (without extentsion)
+#'
 #'
 #'@examples
 #'\dontrun{
 #'cnlp_download_corenlp()
 #'cnlp_download_corenlp(type="spanish")
+#'cnlp_download_corenlp(baseURL=`https://displayrreuspackagecache.blob.core.windows.net/r-package-cache`)
 #'}
 #' @importFrom utils download.file
 #' @export
 cnlp_download_corenlp <- function(
-    type = c("default", "base", "en"),
-    output_loc, url = NULL, url_core = TRUE, force = FALSE) {
+  type = c("default", "base", "en"),
+  output_loc, 
+  url = NULL, 
+  url_core = TRUE, 
+  force = FALSE,
+  baseURL = "https://downloads.cs.stanford.edu/nlp/software"
+  coreFile = "stanford-corenlp-full-2018-10-05"
+) {
 
   op <- options(timeout = 600)
   on.exit(options(op))
