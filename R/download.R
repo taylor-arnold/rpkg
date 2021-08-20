@@ -49,7 +49,7 @@ cnlp_download_corenlp <- function(
   coreFile = "stanford-corenlp-full-2018-10-05"
 ) {
 
-  op <- options(timeout = 600)
+  op <- options(timeout = 900)
   on.exit(options(op))
   
   # set defaults and determine where files should be saved
