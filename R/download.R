@@ -46,7 +46,7 @@ cnlp_download_corenlp <- function(
   url_core = TRUE, 
   force = FALSE,
   baseURL = "https://downloads.cs.stanford.edu/nlp/software",
-  coreFile = "stanford-corenlp-full-2018-10-05",
+  coreFile = "stanford-corenlp-full-2018-10-05"
 ) {
 
   op <- options(timeout = 900)
