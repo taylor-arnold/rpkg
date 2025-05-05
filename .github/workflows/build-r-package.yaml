@@ -1,0 +1,18 @@
+name: Build cleanNLP
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build:
+    name: Build cleanNLP
+    permissions:
+      checks: write
+      contents: read
+    uses: Displayr/nixr-public/.github/workflows/build-flake-installable.yaml@master
+    with:
+      installable-path: pkgs.x86_64-linux.rPackages.cleanNLP
+      build-args: --override-input displayr-cleanNLP .
+      installable-name: cleanNLP
+    secrets: inherit
