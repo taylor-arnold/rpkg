@@ -4,6 +4,13 @@ This repository contains a collection of R packages that I have developed, spann
 
 ## Packages
 
+### casl
+
+**Functions for the Computational Approach to Statistical Learning book**
+
+Functions and data sets that implement minimal reference implementations of statistical learning algorithms.
+
+
 ### cleanNLP
 
 **A Tidy Data Model for Natural Language Processing**
@@ -70,8 +77,13 @@ Many of these are also available directly on CRAN.
 
 If you use any of the following packages in your research, please consider citing the relevant publications:
 
-**cleanNLP:**
+**casl:**
 
+> Arnold, Taylor, Bryan Lewis and Mike Kane (2019).
+> *A Computational Approach to Statistical Learning*,
+> CRC Press.
+
+**cleanNLP:**
 
 > Arnold, Taylor (2017).
 > "A Tidy Data Model for Natural Language Processing using cleanNLP."

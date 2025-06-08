@@ -1,0 +1,14 @@
+Package: casl
+Type: Package
+Title: A Computational Approach to Statistical Learning
+Version: 0.2
+Authors@R: c(person("Taylor", "Arnold", email="taylor.arnold@acm.org", role="aut"), person("Michael", "Kane", email="kaneplusplus@gmail.com", role=c("aut", "cre")), person("Bryan", "Lewis", email="blewis@illposed.net", role="aut"))
+Maintainer: Taylor Arnold <taylor.arnold@acm.org>
+Description: Functions and data sets to accompany the book
+  "A Computational Approach to Statistical Learning". The functions
+  implement minimal reference implementations of statistical learning
+  algorithms.
+License: LGPL-2
+RoxygenNote: 6.1.0
+Imports: stringi, Matrix, digest, irlba, stats, utils
+Suggests: testthat
