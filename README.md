@@ -72,18 +72,22 @@ If you use any of the following packages in your research, please consider citin
 
 **cleanNLP:**
 
-```
-Arnold, Taylor (2017). "A Tidy Data Model for Natural Language Processing using cleanNLP." *The R Journal*, 9(2), 1-20.
-```
+
+> Arnold, Taylor (2017).
+> "A Tidy Data Model for Natural Language Processing using cleanNLP."
+> *The R Journal*, 9(2), 1-20.
+
 
 **dgof:**
 
-```
-Arnold, Taylor, John W. Emerson (2011). "Nonparametric Goodness-of-Fit Tests for Discrete Null Distributions." *The R Journal*, 3(2), 34-39.
-```
+> Arnold, Taylor, John W. Emerson (2011).
+> "Nonparametric Goodness-of-Fit Tests for Discrete Null Distributions."
+> *The R Journal*, 3(2), 34-39.
 
 **hdir**, **ggimg**, and **ggmaptile:**
 
-Arnold, Taylor, Lauren Tilton (2024). *Humanities Data in R: Exploring Networks, Geospatial Data, Images, and Text (2nd)*, Springer.
+> Arnold, Taylor, Lauren Tilton (2024).
+> *Humanities Data in R: Exploring Networks, Geospatial Data, Images, and Text (2nd)*,
+> Springer.
 
 
