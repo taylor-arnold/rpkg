@@ -1,0 +1,195 @@
+---
+title: "Creating Text Visualizations with Wikipedia Data"
+author: Taylor Arnold
+output:
+  rmarkdown::html_vignette: default
+  vignette: >
+    %\VignetteIndexEntry{Creating Text Visualizations with Wikipedia Data}
+    %\VignetteEngine{knitr::rmarkdown}
+    %\VignetteEncoding{UTF-8}
+---
+
+**This document shows the updated version 3 of the package, now available on CRAN**
+
+```{r setup, include=FALSE}
+# CRAN will not have spaCy installed, so create static vignette
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+```{r, echo = FALSE, message=FALSE}
+library(magrittr)
+library(dplyr)
+library(ggplot2)
+library(cleanNLP)
+library(jsonlite)
+library(stringi)
+library(xml2)
+```
+
+## Grabbing the data
+
+We start by using the MediaWiki API to grab page data from Wikipedia. We will wrap this up
+into a small function for re-use later, and start by looking at the English page for oenguins.
+The code converts the JSON data into XML data and takes only text within the body of the article.
+
+```{r}
+grab_wiki <- function(lang, page) {
+  url <- sprintf(
+    "https://%s.wikipedia.org/w/api.php?action=parse&format=json&page=%s",
+    lang,
+    page)
+  page_json <- jsonlite::fromJSON(url)$parse$text$"*"
+  page_xml <- xml2::read_xml(page_json, asText=TRUE)
+  page_text <- xml_text(xml_find_all(page_xml, "//div/p"))
+
+  page_text <- stri_replace_all(page_text, "", regex="\\[[0-9]+\\]")
+  page_text <- stri_replace_all(page_text, " ", regex="\n")
+  page_text <- stri_replace_all(page_text, " ", regex="[ ]+")
+  page_text <- page_text[stri_length(page_text) > 10]
+
+  return(page_text)
+}
+
+penguin <- grab_wiki("en", "penguin")
+penguin[1:10] # just show the first 10 paragraphs
+```
+```
+[1] "Penguins (order Sphenisciformes, family Spheniscidae) are a group of aquatic flightless birds. They live almost exclusively in the Southern Hemisphere, with only one species, the Galápagos penguin, found north of the equator. Highly adapted for life in the water, penguins have countershaded dark and white plumage and flippers for swimming. Most penguins feed on krill, fish, squid and other forms of sea life which they catch while swimming underwater. They spend roughly half of their lives on land and the other half in the sea. "
+[2] "Although almost all penguin species are native to the Southern Hemisphere, they are not found only in cold climates, such as Antarctica. In fact, only a few species of penguin live so far south. Several species are found in the temperate zone, but one species, the Galápagos penguin, lives near the equator. "
+[3] "The largest living species is the emperor penguin (Aptenodytes forsteri): on average, adults are about 1.1 m (3 ft 7 in) tall and weigh 35 kg (77 lb). The smallest penguin species is the little blue penguin (Eudyptula minor), also known as the fairy penguin, which stands around 40 cm (16 in) tall and weighs 1 kg (2.2 lb). Among extant penguins, larger penguins inhabit colder regions, while smaller penguins are generally found in temperate or even tropical climates. Some prehistoric species attained enormous sizes, becoming as tall or as heavy as an adult human. These were not restricted to Antarctic regions; on the contrary, subantarctic regions harboured high diversity, and at least one giant penguin occurred in a region around 2,000 km south of the equator 35 mya, in a climate decidedly warmer than today.[which?] "
+[4] "The word penguin first appears in the 16th century as a synonym for great auk. When European explorers discovered what are today known as penguins in the Southern Hemisphere, they noticed their similar appearance to the great auk of the Northern Hemisphere, and named them after this bird, although they are not closely related. "
+[5] "The etymology of the word penguin is still debated. The English word is not apparently of French, Breton or Spanish origin (the latter two are attributed to the French word pingouin \"auk\"), but first appears in English or Dutch. "
+[6] "Some dictionaries suggest a derivation from Welsh pen, \"head\" and gwyn, \"white\", including the Oxford English Dictionary, the American Heritage Dictionary, the Century Dictionary and Merriam-Webster, on the basis that the name was originally applied to the great auk, either because it was found on White Head Island (Welsh: Pen Gwyn) in Newfoundland, or because it had white circles around its eyes (though the head was black). "
+[7] "An alternative etymology links the word to Latin pinguis, which means \"fat\" or \"oil\". Support for this etymology can be found in the alternative Germanic word for penguin, Fettgans or \"fat-goose\", and the related Dutch word vetgans. "
+[8] "Adult male penguins are called cocks, females hens; a group of penguins on land is a waddle, and a similar group in the water is a raft. "
+[9] "Since 1871, the Latin word Pinguinus has been used in scientific classification to name the genus of the great auk (Pinguinus impennis, meaning \"penguin without flight feathers\"), which became extinct in the mid-19th century. As confirmed by a 2004 genetic study, the genus Pinguinus belongs in the family of the auks (Alcidae), within the order of the Charadriiformes. "
+[10] "The birds currently known as penguins were discovered later and were so named by sailors because of their physical resemblance to the great auk. Despite this resemblance, however, they are not auks and they are not closely related to the great auk. They do not belong in the genus Pinguinus, and are not classified in the same family and order as the great auks. They were classified in 1831 by Bonaparte in several distinct genera within the family Spheniscidae and order Sphenisciformes. "
+```
+
+## Running the cleanNLP annotation
+
+Next, we run the udpipe annotation backend over the dataset using **cleanNLP**. Because
+of the way the data are structured, each paragraph will be treated as its own document.
+
+```{r}
+cnlp_init_udpipe()
+anno <- cnlp_annotate(penguin, verbose=FALSE)
+anno$token
+```
+```
+# A tibble: 5,519 x 11
+   doc_id   sid tid   token token_with_ws lemma upos  xpos  feats tid_source
+ *  <int> <int> <chr> <chr> <chr>         <chr> <chr> <chr> <chr> <chr>
+ 1      1     1 1     Peng… "Penguins "   Peng… NOUN  NNS   Numb… 11
+ 2      1     1 2     (     "("           (     PUNCT -LRB- NA    1
+ 3      1     1 3     order "order "      order NOUN  NN    Numb… 4
+ 4      1     1 4     Sphe… "Spheniscifo… Sphe… NOUN  NNS   Numb… 1
+ 5      1     1 5     ,     ", "          ,     PUNCT ,     NA    7
+ 6      1     1 6     fami… "family "     fami… NOUN  NN    Numb… 7
+ 7      1     1 7     Sphe… "Spheniscida… Sphe… NOUN  NN    Numb… 4
+ 8      1     1 8     )     ") "          )     PUNCT -RRB- NA    1
+ 9      1     1 9     are   "are "        be    AUX   VBP   Mood… 11
+10      1     1 10    a     "a "          a     DET   DT    Defi… 11
+# … with 5,509 more rows, and 1 more variable: relation <chr>
+```
+
+## Reconstructing the text
+
+Here, we will show how we can recreate the original text, possibly with additional markings.
+This can be useful when building text-based visualization pipelines. For example, let's start
+by replacing all of the proper nouns with an all caps version of each word. This is easy because
+udpipe (and spacy as well) provides a column called `token_with_ws`:
+
+```{r}
+token <- anno$token
+token$new_token <- token$token_with_ws
+change_these <- which(token$xpos %in% c("NNP", "NNPS"))
+token$new_token[change_these] <- stri_trans_toupper(token$new_token[change_these])
+```
+
+Then, push all of the text back together by paragraph (we use the
+`stri_wrap` function to print out the text in a nice format for this
+document):
+
+```{r}
+paragraphs <- tapply(token$new_token, token$doc_id, paste, collapse="")[1:10]
+paragraphs <- stri_wrap(paragraphs, simplify=FALSE, exdent = 1)
+cat(unlist(lapply(paragraphs, function(v) c(v, ""))), sep="\n")
+```
+```
+Penguins (order Sphenisciformes, family Spheniscidae) are a group of
+ aquatic flightless birds. They live almost exclusively in the Southern
+ Hemisphere, with only one species, the GALÁPAGOS PENGUIN, found north
+ of the equator. Highly adapted for life in the water, penguins have
+ countershaded dark and white plumage and flippers for swimming. Most
+ penguins feed on krill, fish, squid and other forms of sea life which
+ they catch while swimming underwater. They spend roughly half of their
+ lives on land and the other half in the sea.
+
+Although almost all penguin species are native to the Southern
+ Hemisphere, they are not found only in cold climates, such as
+ ANTARCTICA. In fact, only a few species of penguin live so far south.
+ Several species are found in the temperate zone, but one species, the
+ GALÁPAGOS penguin, lives near the equator.
+
+The largest living species is the emperor penguin (Aptenodytes
+ forsteri): on average, adults are about 1.1 m (3 ft 7 in) tall and weigh
+ 35 kg (77 lb). The smallest penguin species is the little blue penguin
+ (EUDYPTULA MINOR), also known as the fairy penguin, which stands around
+ 40 cm (16 in) tall and weighs 1 kg (2.2 lb). Among extant penguins,
+ larger penguins inhabit colder regions, while smaller penguins are
+ generally found in temperate or even tropical climates. Some prehistoric
+ species attained enormous sizes, becoming as tall or as heavy as an
+ adult human. These were not restricted to Antarctic regions; on the
+ contrary, subantarctic regions harboured high diversity, and at least
+ one giant penguin occurred in a region around 2,000 km south of the
+ equator 35 mya, in a climate decidedly warmer than today.[which?]
+
+The word penguin first appears in the 16th century as a synonym for
+ great auk. When European explorers discovered what are today known
+ as penguins in the SOUTHERN Hemisphere, they noticed their similar
+ appearance to the great auk of the Northern Hemisphere, and named them
+ after this bird, although they are not closely related.
+
+The etymology of the word penguin is still debated. The English word
+ is not apparently of FRENCH, BRETON or Spanish origin (the latter two
+ are attributed to the French word pingouin "auk"), but first appears in
+ ENGLISH or DUTCH.
+
+Some dictionaries suggest a derivation from WELSH PEN, "head" and gwyn,
+ "white", including the OXFORD ENGLISH DICTIONARY, the American Heritage
+ DICTIONARY, the CENTURY DICTIONARY and MERRIAM-WEBSTER, on the basis
+ that the name was originally applied to the great auk, either because
+ it was found on WHITE HEAD ISLAND (Welsh: PEN GWYN) in NEWFOUNDLAND,
+ or because it had white circles around its eyes (though the head was
+ black).
+
+An alternative etymology links the word to LATIN PINGUIS, which
+ means "fat" or "oil". Support for this etymology can be found in the
+ alternative Germanic word for penguin, Fettgans or "fat-goose", and the
+ related Dutch word vetgans.
+
+Adult male penguins are called cocks, females hens; a group of penguins
+ on land is a waddle, and a similar group in the water is a raft.
+
+Since 1871, the Latin word PINGUINUS has been used in scientific
+ classification to name the genus of the great auk (Pinguinus impennis,
+ meaning "penguin without flight feathers"), which became extinct in
+ the mid-19th century. As confirmed by a 2004 genetic study, the genus
+ Pinguinus belongs in the family of the auks (ALCIDAE), within the order
+ of the Charadriiformes.
+
+The birds currently known as penguins were discovered later and were
+ so named by sailors because of their physical resemblance to the
+ great auk. Despite this resemblance, however, they are not auks and
+ they are not closely related to the great auk. They do not belong in
+ the genus Pinguinus, and are not classified in the same family and
+ order as the great auks. They were classified in 1831 by BONAPARTE
+ in several distinct genera within the family Spheniscidae and order
+ Sphenisciformes.
+```
+
+By outputting the text as HTML or XML, there are a lot of interesting visualization
+and metadata work that can be done with this approach. If you have an interesting
+use case that might be useful to others, please feel free to make a pull-request
+to include your work in the package repository.

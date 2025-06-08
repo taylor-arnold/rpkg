@@ -1,0 +1,37 @@
+#' cleanNLP: A Tidy Data Model for Natural Language Processing
+#'
+#' Provides a set of fast tools for converting a textual corpus into a set
+#' of normalized tables. Multiple NLP backends can be used, with the output
+#' standardized into a normalized format. Options include stringi (very fast,
+#' but only provides tokenization), udpipe (fast, many languages, includes
+#' part of speech tags and dependencies), and spacy (python backend; includes
+#' named entity recognition).
+#'
+#' Once the package is set up, run one of \code{\link{cnlp_init_stringi}},
+#' \code{\link{cnlp_init_spacy}}, or \code{\link{cnlp_init_udpipe}} to load
+#' the desired NLP backend. After this function is done running, use
+#' \code{\link{cnlp_annotate}} to run the annotation engine over a corpus of
+#' text. The package vignettes provide more detailed set-up information.
+#'
+#' @examples
+#'
+#'\dontrun{
+#' library(cleanNLP)
+#'
+#' # load the annotation engine
+#' cnlp_init_stringi()
+#'
+#' # annotate your text
+#' input <- data.frame(
+#'  text=c(
+#'    "This is a sentence.",
+#'    "Here is something else to parse!"
+#'  ),
+#'  stringsAsFactors=FALSE
+#' )
+# anno <- cnlp_annotate(input)
+# anno
+#'}
+#'
+#' @docType package
+"_PACKAGE"
