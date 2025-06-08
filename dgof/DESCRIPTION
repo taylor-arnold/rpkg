@@ -1,0 +1,23 @@
+Package: dgof
+Version: 1.5.1
+Date: 2024-10-09
+Title: Discrete Goodness-of-Fit Tests
+Authors@R: c(person(given = c("Taylor", "B."),
+                      family = "Arnold",
+                      role = c("aut", "cre"),
+                      email = "taylor.b.arnold@gmail.com"),
+               person(given = c("John", "W."),
+                      family = "Emerson",
+                      role = "aut"),
+               person(given = c("R Core Team and contributors worldwide"),
+                      role = "aut"))
+Maintainer: Taylor B. Arnold <taylor.b.arnold@gmail.com>
+Description: A revision to the stats::ks.test() function and the associated
+        ks.test.Rd help page. With one minor exception, it does not change the
+        existing behavior of ks.test(), and it adds features necessary
+        for doing one-sample tests with hypothesized discrete
+        distributions. The package also contains cvm.test(), for doing
+        one-sample Cramer-von Mises goodness-of-fit tests.
+License: GPL (>= 2.0)
+LazyLoad: yes
+NeedsCompilation: yes

@@ -1,0 +1,20 @@
+Package: leaderCluster
+Type: Package
+Title: Leader Clustering Algorithm
+Version: 1.5
+Date: 2023-03-24
+Author: Taylor B. Arnold
+Maintainer: Taylor B. Arnold <tarnold2@richmond.edu>
+Description: The leader clustering algorithm provides
+ a means for clustering a set of data points. Unlike many other clustering
+ algorithms it does not require the user to specify the number of clusters,
+ but instead requires the approximate radius of a cluster as its primary
+ tuning parameter. The package provides a fast implementation of this
+ algorithm in n-dimensions using Lp-distances (with special cases for p=1,2,
+ and infinity) as well as for spatial data using the Haversine
+ formula, which takes latitude/longitude pairs as inputs and clusters
+ based on great circle distances.
+License: LGPL-2
+LazyLoad: yes
+NeedsCompilation: yes
+RoxygenNote: 7.2.3

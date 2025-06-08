@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Taylor Arnold" />
+
+
+<title>Using Map Tiles to Visualize Spatial Data</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using Map Tiles to Visualize Spatial Data</h1>
+<h4 class="author">Taylor Arnold</h4>
+
+
+
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>This vignette introduces the core functions in the <strong>ggmaptile</strong> R package. To start, we load the package into R. We all load <strong>dplyr</strong> to assist with processing our data.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(ggplot2)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"><span class="kw">library</span>(ggmaptile)</a>
+<a class="sourceLine" id="cb1-3" data-line-number="3"><span class="kw">library</span>(dplyr)</a></code></pre></div>
+<p>There are two datasets included with the package. The first gives the location of the largest 58 cities in France. We will start by using this dataset to illustrate how the package works.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">french_city</a></code></pre></div>
+<pre><code>## # A tibble: 58 x 5
+##    city         lat    lng population admin_name                
+##    &lt;chr&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;                     
+##  1 Paris       48.9  2.33     9904000 Ile-de-France             
+##  2 Lyon        45.8  4.83     1423000 Auvergne-Rhone-Alpes      
+##  3 Marseille   43.3  5.38     1400000 Provence-Alpes-Cote d&#39;Azur
+##  4 Lille       50.6  3.08     1044000 Hauts-de-France           
+##  5 Nice        43.7  7.26      927000 Provence-Alpes-Cote d&#39;Azur
+##  6 Toulouse    43.6  1.45      847000 Occitanie                 
+##  7 Bordeaux    44.8 -0.595     803000 Nouvelle-Aquitaine        
+##  8 Rouen       49.4  1.08      532559 Normandie                 
+##  9 Strasbourg  48.6  7.75      439972 Grand Est                 
+## 10 Nantes      47.2 -1.59      438537 Pays de la Loire          
+## # … with 48 more rows</code></pre>
+<p>The main function in <strong>ggmaptile</strong> is called <code>stat_maptiles</code>, which automatically adds map tiles to a plot. To use it, simply construct a ggplot object where a longitude is assigned to the x aesthetic and a latitude is assigned to the y aesthetic. The function will cover the region spanned by the data. Here, we grab tiles to cover the region of the largest 58 cities in France.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb4-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/simple-map-1.png" alt="fig"></img></p>
+<p>Often, with a map, it is best to hide the axes and reserve the entire plot region for the map itself. The function <code>mapview</code> included with the package, along with ggplot2’s theme <code>theme_void</code>, make this relatively easy.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb5-4" data-line-number="4"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/mapview-1.png" alt="fig"></img></p>
+<p>Additional layers can be added on top of the map tiles. So, for example, we can add points associated with each of the cities and color them according their administrative region.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">color =</span> admin_name), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/points-1.png" alt="fig"></img></p>
+<p>And that’s it! In the following sections, options and guidance for how to use <code>stat_maptiles</code> are highlighted to optimise the package for various use cases.</p>
+</div>
+<div id="common-maptile-options" class="section level2">
+<h2>Common maptile options</h2>
+<p>There are several options built into the <code>stat_maptiles</code> function that can be adjusted to control how map tiles are selected and shown on your plot. By default, a zoom level will be determined for your plot in order to approximately cover the region in 25 tiles. Providing a positive or negative integer to the option <code>zoom_adj</code> can adjust this default to zoom in (positive value) or out (negative) value. Here is our previous map zoomed out one level.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb7-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb7-4" data-line-number="4">      <span class="dt">zoom_adj =</span> <span class="dv">-1</span></a>
+<a class="sourceLine" id="cb7-5" data-line-number="5">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb7-6" data-line-number="6"><span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">color =</span> admin_name), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb7-7" data-line-number="7"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb7-8" data-line-number="8"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/zoom-1.png" alt="fig"></img></p>
+<p>In this case, the zoomed out map actually looks quite nice and provides more readable labels for the countries and major landmarks. Be careful when zooming in too much beyond the default as it can require downloading and displaying a very large number of tiles. It is also possible to set an explicit zoom level from 1 to 19 using the parameter <code>zoom</code>.</p>
+<p>By default, map tiles come from the “toner-lite” category supplied by <a href="http://maps.stamen.com/#toner/">Stamen Design, under CC BY 3.0.</a>. To use a different set of tiles, supply a string to the parameter <code>url</code> to describe how to grab tiles. Here, for example, are the “terrain” map tiles from Stamen. We also need to set the option <code>force = TRUE</code>; by default the package caches downloaded tiles within a session and would reuse the “toner-lite” tiles that were previously downloaded.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb8-4" data-line-number="4">      <span class="dt">url =</span> <span class="st">&quot;http://tile.stamen.com/terrain/%d/%d/%d.png&quot;</span>,</a>
+<a class="sourceLine" id="cb8-5" data-line-number="5">      <span class="dt">force =</span> <span class="ot">TRUE</span></a>
+<a class="sourceLine" id="cb8-6" data-line-number="6">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb8-7" data-line-number="7"><span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">color =</span> admin_name), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb8-8" data-line-number="8"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb8-9" data-line-number="9"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/terrain-1.png" alt="fig"></img></p>
+<p>You can also supply a value to the option <code>alpha</code> to control the opacity of the tiles. This is useful when using bright tiles, such as the terrain ones, to make sure your other layers are not lost in the colors of the map itself. Note that we do not need to set <code>force = TRUE</code> here because the correct tiles are already downloaded from the previous code block.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb9-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb9-4" data-line-number="4">      <span class="dt">url =</span> <span class="st">&quot;http://tile.stamen.com/terrain/%d/%d/%d.png&quot;</span>,</a>
+<a class="sourceLine" id="cb9-5" data-line-number="5">      <span class="dt">alpha =</span> <span class="fl">0.4</span></a>
+<a class="sourceLine" id="cb9-6" data-line-number="6">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-7" data-line-number="7"><span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">color =</span> admin_name), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-8" data-line-number="8"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb9-9" data-line-number="9"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/alpha-1.png" alt="fig"></img></p>
+<p>By default, downloaded tiles are stored in a local temporary directory. This persists within an R session but is lost when closing R. To set an alternative local directory, which can be stored between sessions to avoid the constant re-downloading of tiles, set the parameter <code>cache_dir</code> to the desired root of your cache location. Here is its usage with the “watercolor” tiles:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" data-line-number="1">french_city <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb10-2" data-line-number="2"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(<span class="dt">x =</span> lng, <span class="dt">y =</span> lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb10-3" data-line-number="3"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb10-4" data-line-number="4">      <span class="dt">url =</span> <span class="st">&quot;http://tile.stamen.com/watercolor/%d/%d/%d.jpg&quot;</span>,</a>
+<a class="sourceLine" id="cb10-5" data-line-number="5">      <span class="dt">alpha =</span> <span class="fl">0.6</span>,</a>
+<a class="sourceLine" id="cb10-6" data-line-number="6">      <span class="dt">cache_dir =</span> <span class="st">&quot;cache&quot;</span></a>
+<a class="sourceLine" id="cb10-7" data-line-number="7">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb10-8" data-line-number="8"><span class="st">    </span><span class="kw">geom_point</span>(<span class="kw">aes</span>(<span class="dt">color =</span> admin_name), <span class="dt">size =</span> <span class="dv">3</span>, <span class="dt">show.legend =</span> <span class="ot">FALSE</span>) <span class="op">+</span></a>
+<a class="sourceLine" id="cb10-9" data-line-number="9"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb10-10" data-line-number="10"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/cache-1.png" alt="fig"></img></p>
+<p>Combining these options can produce a myriad of interesting plots to help visualize and communicate your spatial data. One final option, which requires a bit more discussion, is included in the section below.</p>
+</div>
+<div id="aspect-ratio-and-facets" class="section level2">
+<h2>Aspect ratio and facets</h2>
+<p>One of the more subtle issues with grabbing map tiles to visualize a dataset is determining what tiles to use to cover a given set of data. At the root of the difficulty is that there is generally a fixed aspect ratio that must be preserved to avoid distorting the tile images. This means that the number of tiles depends on the desired aspect ratio of plotting device, which is difficult to always know ahead of time when grabbing map tiles. By default, the function <code>stat_maptiles</code> grabs just enough tiles to cover the given data and constrains the plot to fit these tiles with the desired aspect ratio. While often, particularly when working data roughly distributed in a square area as with the major France cities, the default behavior works fine. Here, we see how to modify this behavior.</p>
+<p>The second dataset provided in the package provides information about the Parisian metro system. It is a good dataset to illustrate the issue with aspect ratios because metro lines tend to extend in one direction (north-south or east-west) and offer several different ways that we may want to control the dimensions of the output.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" data-line-number="1">paris_metro</a></code></pre></div>
+<pre><code>## # A tibble: 371 x 7
+##    nom_gare                      ligne ligne_couleur   lon   lat lon_fin lat_fin
+##    &lt;chr&gt;                         &lt;int&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+##  1 La Defense - Grande Arche         1 #ffbe00        2.24  48.9    2.25    48.9
+##  2 Esplanade de la Defense           1 #ffbe00        2.25  48.9    2.26    48.9
+##  3 Pont de Neuilly (Avenue de M…     1 #ffbe00        2.26  48.9    2.27    48.9
+##  4 Les Sablons (Jardin d&#39;acclim…     1 #ffbe00        2.27  48.9    2.29    48.9
+##  5 Argentine                         1 #ffbe00        2.29  48.9    2.30    48.9
+##  6 Charles De Gaulle-Etoile          1 #ffbe00        2.30  48.9    2.30    48.9
+##  7 George-V                          1 #ffbe00        2.30  48.9    2.31    48.9
+##  8 Franklin D.Roosevelt              1 #ffbe00        2.31  48.9    2.31    48.9
+##  9 Champs-Elysees-Clemenceau         1 #ffbe00        2.31  48.9    2.32    48.9
+## 10 Concorde                          1 #ffbe00        2.32  48.9    2.33    48.9
+## # … with 361 more rows</code></pre>
+<p>Here, we will start by looking at the default map constructed for the M4 metro line. The dataset includes the metro path and canonical colors associated with each line. We will use <code>geom_segment</code> the <code>scale_color_identity</code> to show these features on top of the map.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" data-line-number="1">paris_metro <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb13-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(ligne <span class="op">==</span><span class="st"> </span><span class="dv">4</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb13-3" data-line-number="3"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(lon, lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb13-4" data-line-number="4"><span class="st">    </span><span class="kw">stat_maptiles</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb13-5" data-line-number="5"><span class="st">    </span><span class="kw">geom_point</span>(</a>
+<a class="sourceLine" id="cb13-6" data-line-number="6">      <span class="kw">aes</span>(<span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb13-7" data-line-number="7">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb13-8" data-line-number="8">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb13-9" data-line-number="9"><span class="st">    </span><span class="kw">geom_segment</span>(</a>
+<a class="sourceLine" id="cb13-10" data-line-number="10">      <span class="kw">aes</span>(<span class="dt">xend =</span> lon_fin, <span class="dt">yend =</span> lat_fin, <span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb13-11" data-line-number="11">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb13-12" data-line-number="12">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb13-13" data-line-number="13"><span class="st">    </span><span class="kw">scale_color_identity</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb13-14" data-line-number="14"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb13-15" data-line-number="15"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/metro-all-1.png" alt="fig"></img></p>
+<p>The default output looks quite nice. It does a good job of determining the required number of tiles. It also makes sure that the plotted map tiles are not distorted by only using part of the plot region for the map.</p>
+<p>What if we wanted to fill out the white region with map tiles? They are not needed to show the data, but if (for whatever reason) we need to have a square plot it makes sense to use this space to give more context to our data. To do this we can set the parameter <code>aspect_ratio</code> to control the desired aspect ratio of the selected tiles. This will add additional tiles either the x or y (as needed) dimension to produce a plot of the desired aspect ratio. Here, we set the aspect ratio to 1, to have an equal number of x and y tiles.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" data-line-number="1">paris_metro <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb14-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(ligne <span class="op">==</span><span class="st"> </span><span class="dv">4</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb14-3" data-line-number="3"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(lon, lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb14-4" data-line-number="4"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb14-5" data-line-number="5">      <span class="dt">aspect_ratio =</span> <span class="dv">1</span></a>
+<a class="sourceLine" id="cb14-6" data-line-number="6">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb14-7" data-line-number="7"><span class="st">    </span><span class="kw">geom_point</span>(</a>
+<a class="sourceLine" id="cb14-8" data-line-number="8">      <span class="kw">aes</span>(<span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb14-9" data-line-number="9">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb14-10" data-line-number="10">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb14-11" data-line-number="11"><span class="st">    </span><span class="kw">geom_segment</span>(</a>
+<a class="sourceLine" id="cb14-12" data-line-number="12">      <span class="kw">aes</span>(<span class="dt">xend =</span> lon_fin, <span class="dt">yend =</span> lat_fin, <span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb14-13" data-line-number="13">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb14-14" data-line-number="14">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb14-15" data-line-number="15"><span class="st">    </span><span class="kw">scale_color_identity</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb14-16" data-line-number="16"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb14-17" data-line-number="17"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/metro-4-1.png" alt="fig"></img></p>
+<p>Note that, because the tiles are discrete, the aspect ratio of the output may only be approximate.</p>
+<p>Showing a number of the metro lines on the same map is interesting, but can get a bit messy:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">paris_metro <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(ligne <span class="op">&lt;=</span><span class="st"> </span><span class="dv">9</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb15-3" data-line-number="3"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(lon, lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-4" data-line-number="4"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb15-5" data-line-number="5">      <span class="dt">alpha =</span> <span class="fl">0.6</span></a>
+<a class="sourceLine" id="cb15-6" data-line-number="6">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-7" data-line-number="7"><span class="st">    </span><span class="kw">geom_point</span>(</a>
+<a class="sourceLine" id="cb15-8" data-line-number="8">      <span class="kw">aes</span>(<span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb15-9" data-line-number="9">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb15-10" data-line-number="10">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-11" data-line-number="11"><span class="st">    </span><span class="kw">geom_segment</span>(</a>
+<a class="sourceLine" id="cb15-12" data-line-number="12">      <span class="kw">aes</span>(<span class="dt">xend =</span> lon_fin, <span class="dt">yend =</span> lat_fin, <span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb15-13" data-line-number="13">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb15-14" data-line-number="14">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-15" data-line-number="15"><span class="st">    </span><span class="kw">scale_color_identity</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-16" data-line-number="16"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb15-17" data-line-number="17"><span class="st">    </span><span class="kw">mapview</span>()</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/metro-4-square-1.png" alt="fig"></img></p>
+<p>An alternative approach is to use ggplot2’s facets to show each line in its own small plot. Here, we have two options. First, you could use a consistent plot region for all of the maps with fixed scales (the default of <code>facet_wrap</code>). We will set the option <code>quiet = TRUE</code> to avoid printing a status message for each facet and zoom each image out by a factor of 1, since the default algorithm assumes each map is being printed</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" data-line-number="1">paris_metro <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(ligne <span class="op">&lt;=</span><span class="st"> </span><span class="dv">9</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb16-3" data-line-number="3"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(lon, lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-4" data-line-number="4"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb16-5" data-line-number="5">      <span class="dt">zoom_adj =</span> <span class="dv">-1</span>,</a>
+<a class="sourceLine" id="cb16-6" data-line-number="6">      <span class="dt">quiet =</span> <span class="ot">TRUE</span></a>
+<a class="sourceLine" id="cb16-7" data-line-number="7">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-8" data-line-number="8"><span class="st">    </span><span class="kw">geom_point</span>(</a>
+<a class="sourceLine" id="cb16-9" data-line-number="9">      <span class="kw">aes</span>(<span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb16-10" data-line-number="10">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb16-11" data-line-number="11">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-12" data-line-number="12"><span class="st">    </span><span class="kw">geom_segment</span>(</a>
+<a class="sourceLine" id="cb16-13" data-line-number="13">      <span class="kw">aes</span>(<span class="dt">xend =</span> lon_fin, <span class="dt">yend =</span> lat_fin, <span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb16-14" data-line-number="14">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb16-15" data-line-number="15">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-16" data-line-number="16"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-17" data-line-number="17"><span class="st">    </span><span class="kw">mapview</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb16-18" data-line-number="18"><span class="st">    </span><span class="kw">facet_wrap</span>(<span class="op">~</span>ligne)</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/metro-facet-1.png" alt="fig"></img></p>
+<p>It is also possible to allow the scales to float freely so that each region can display a different map. However, in this case you will need to set the aspect ratio to a fixed value (otherwise the images will becomes distorted):</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" data-line-number="1">paris_metro <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb17-2" data-line-number="2"><span class="st">  </span><span class="kw">filter</span>(ligne <span class="op">&lt;=</span><span class="st"> </span><span class="dv">12</span>) <span class="op">%&gt;%</span></a>
+<a class="sourceLine" id="cb17-3" data-line-number="3"><span class="st">  </span><span class="kw">ggplot</span>(<span class="kw">aes</span>(lon, lat)) <span class="op">+</span></a>
+<a class="sourceLine" id="cb17-4" data-line-number="4"><span class="st">    </span><span class="kw">stat_maptiles</span>(</a>
+<a class="sourceLine" id="cb17-5" data-line-number="5">      <span class="dt">aspect_ratio =</span> <span class="dv">1</span>,</a>
+<a class="sourceLine" id="cb17-6" data-line-number="6">      <span class="dt">zoom_adj =</span> <span class="dv">-1</span>,</a>
+<a class="sourceLine" id="cb17-7" data-line-number="7">      <span class="dt">quiet =</span> <span class="ot">TRUE</span></a>
+<a class="sourceLine" id="cb17-8" data-line-number="8">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb17-9" data-line-number="9"><span class="st">    </span><span class="kw">geom_point</span>(</a>
+<a class="sourceLine" id="cb17-10" data-line-number="10">      <span class="kw">aes</span>(<span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb17-11" data-line-number="11">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb17-12" data-line-number="12">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb17-13" data-line-number="13"><span class="st">    </span><span class="kw">geom_segment</span>(</a>
+<a class="sourceLine" id="cb17-14" data-line-number="14">      <span class="kw">aes</span>(<span class="dt">xend =</span> lon_fin, <span class="dt">yend =</span> lat_fin, <span class="dt">color =</span> ligne_couleur),</a>
+<a class="sourceLine" id="cb17-15" data-line-number="15">      <span class="dt">show.legend =</span> <span class="ot">FALSE</span></a>
+<a class="sourceLine" id="cb17-16" data-line-number="16">    ) <span class="op">+</span></a>
+<a class="sourceLine" id="cb17-17" data-line-number="17"><span class="st">    </span><span class="kw">theme_void</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb17-18" data-line-number="18"><span class="st">    </span><span class="kw">mapview</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb17-19" data-line-number="19"><span class="st">    </span><span class="kw">facet_wrap</span>(<span class="op">~</span>ligne, <span class="dt">scale =</span> <span class="st">&quot;free&quot;</span>, <span class="dt">ncol =</span> <span class="dv">4</span>)</a></code></pre></div>
+<p><img src="https://raw.githubusercontent.com/statsmaths/ggmaptile/master/vignettes/figs/metro-facet-free-1.png" alt="fig"></img></p>
+<p>Using free scales are particularly useful when you want to facet by different regions of the plot, such as showing the french cities data with a facet for each region.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

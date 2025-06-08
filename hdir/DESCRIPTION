@@ -1,0 +1,28 @@
+Package: hdir
+Type: Package
+Title: Functions for the Humanities Data in R Book
+Version: 1.2
+Date: 2024-07-22
+Author: Taylor B. Arnold
+Maintainer: Taylor B. Arnold <tarnold2@richmond.edu>
+Description: Provides helper functions that are used in the Humanities Data in R (2e) book.
+  See the book and source code for more details about how each of the functions works. 
+Imports:
+  rlang,
+  httr,
+  dplyr,
+  igraph,
+  tibble,
+  irlba,
+  umap,
+  stats,
+  ggplot2,
+  readr,
+  purrr,
+  ggimg,
+  grDevices,
+  reticulate,
+  FNN
+License: CC0
+Encoding: UTF-8
+RoxygenNote: 7.3.2

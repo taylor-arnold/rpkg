@@ -1,0 +1,28 @@
+Package: sotu
+Type: Package
+Title: United States Presidential State of the Union Addresses
+Version: 1.0.4
+Authors@R: c(person(given = "Taylor B.", family = "Arnold", email = "tarnold2@richmond.edu", role = c("aut", "cre")))
+Author: Taylor B. Arnold [aut, cre]
+Maintainer: Taylor B. Arnold <tarnold2@richmond.edu>
+Description: The President of the United States is constitutionally obligated to provide
+  a report known as the 'State of the Union'. The report summarizes the current challenges
+  facing the country and the president's upcoming legislative agenda. While historically
+  the State of the Union was often a written document, in recent decades it has always
+  taken the form of an oral address to a joint session of the United States Congress.
+  This package provides the raw text from every such address with the intention of
+  being used for meaningful examples of text analysis in R. The corpus is well suited
+  to the task as it is historically important, includes material intended to be read
+  and material intended to be spoken, and it falls in the public domain. As the corpus
+  spans over two centuries it is also a good test of how well various methods hold up
+  to the idiosyncrasies of historical texts. Associated data about each address, such
+  as the year, president, party, and format, are also included.
+Depends:
+    R (>= 3.5.0) 
+Imports:
+    utils
+License: GPL-2
+URL: https://github.com/statsmaths/sotu/
+BugReports: https://github.com/statsmaths/sotu/issues/
+LazyData: true
+RoxygenNote: 7.2.1

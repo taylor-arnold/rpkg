@@ -1,0 +1,25 @@
+Package: ggmaptile
+Type: Package
+Title: Add Map Images from a Tile Server with ggplot2
+Version: 0.0.1
+Authors@R: c(person(given = "Taylor B.", family = "Arnold", email = "taylor.arnold@acm.org", role = c("aut", "cre")))
+Author: Taylor B. Arnold [aut, cre]
+Maintainer: Taylor B. Arnold <taylor.arnold@acm.org>
+Description: Provides a small set of functions to grab, store, and display maps
+  from a tile server to a ggplot object.
+Depends:
+    R (>= 3.5.0)
+Imports:
+    ggplot2 (>= 3.2.1),
+    ggimg
+Suggests:
+    knitr (>= 1.15),
+    dplyr,
+    testthat (>= 1.0.1),
+    covr (>= 2.2.2)
+License: GPL-2
+URL: https://statsmaths.github.io/ggmaptile/
+BugReports: http://github.com/statsmaths/ggmaptile/issues
+LazyData: true
+VignetteBuilder: knitr
+RoxygenNote: 7.2.3

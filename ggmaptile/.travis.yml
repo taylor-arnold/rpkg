@@ -1,0 +1,8 @@
+language: r
+
+env:
+  global:
+    - NOT_CRAN=false
+
+after_success:
+  - Rscript -e 'covr::codecov()'

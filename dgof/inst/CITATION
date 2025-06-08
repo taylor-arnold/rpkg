@@ -1,0 +1,21 @@
+citHeader("To cite dgof in publications use:")
+
+bibentry(entry = "Article",
+  title        = "Nonparametric Goodness-of-Fit Tests for Discrete Null Distributions",
+  author       = c(as.person("Taylor A. Arnold"),
+                   as.person("John W. Emerson")),
+  journal      = "The R Journal",
+  year         = "2011",
+  volume       = "3",
+  number       = "2",
+  pages        = "34--39",
+  url          = "https://doi.org/10.32614/RJ-2011-016",
+  doi          = "10.32614/RJ-2011-016",
+  bibtype      = "article",
+
+  textVersion  =
+  paste("Taylor B. Arnold, John W. Emerson (2011),",
+        "Nonparametric Goodness-of-Fit Tests for Discrete Null Distributions,",
+        "The R Journal, Vol. 3/2, December 2011, ",
+        "URL: https://doi.org/10.32614/RJ-2011-016")
+)

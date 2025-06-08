@@ -1,0 +1,4 @@
+importFrom("stats", "dchisq", "ecdf", "integrate", "is.stepfun",
+           "knots", "nlm", "runif")
+export(ks.test, cvm.test)
+useDynLib(dgof, .registration = TRUE, .fixes = "C_")
